@@ -43,6 +43,9 @@ sign-in on 2026-10-14).
 - The fetch host allowlist (and CSP `connect-src`) was missing Perplexity,
   Fireworks, NVIDIA NIM, OpenCode, Codebuff, Command Code and other configured
   providers, so their requests failed before being sent.
+- Per-host request tweaks (Groq token caps, OpenAI reasoning params, Cerebras
+  token param, OpenRouter referer) now match the exact URL hostname instead of
+  substring checks (CodeQL js/incomplete-url-substring-sanitization).
 
 ## [2.4.2] - 2026-07-04
 

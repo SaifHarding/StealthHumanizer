@@ -805,6 +805,17 @@ function hostReasoningParams(provider: ModelProvider, model: string): RequestExt
 }
 
 // Generic OpenAI-compatible fetch (used by Groq, Together, OpenRouter, DeepInfra, Cerebras)
+// Exact-host checks only: substring matching like apiUrl.includes('groq.com')
+// accepts attacker-shaped URLs where "groq.com" appears anywhere
+// (CodeQL js/incomplete-url-substring-sanitization).
+function apiUrlHost(apiUrl: string): string {
+  try {
+    return new URL(apiUrl).hostname;
+  } catch {
+    return '';
+  }
+}
+
 async function openAICompatibleGenerate(
   apiUrl: string,
   apiKey: string,
@@ -814,7 +825,8 @@ async function openAICompatibleGenerate(
   options: GenerationOptions = {},
   extras: RequestExtras = {}
 ): Promise<string> {
-  const isGroq = apiUrl.includes('groq.com');
+  const apiHost = apiUrlHost(apiUrl);
+  const isGroq = apiHost === 'api.groq.com';
   const estimatedInputTokens = Math.ceil((userPrompt.length + systemPrompt.length) / 3);
 
   // Groq free tier enforces a strict 1000 Output Tokens Per Minute (OTPM) limit per request.
@@ -833,13 +845,13 @@ async function openAICompatibleGenerate(
   // unless reasoning effort is 'none'. Reasoning tokens also count against
   // max_completion_tokens, so give non-'none' efforts headroom to avoid an
   // empty reply cut off at finish_reason "length".
-  const effort = apiUrl.includes('api.openai.com') ? openAIReasoningEffort(model) : null;
+  const effort = apiHost === 'api.openai.com' ? openAIReasoningEffort(model) : null;
   const allowSampling = effort === null || effort === 'none';
   if (!allowSampling || extras.reasoningHeadroom) {
     maxTokens += isGroq ? 1024 : 4096;
   }
   // Cerebras also wants max_completion_tokens.
-  const tokenParams = /api\.openai\.com|api\.cerebras\.ai/.test(apiUrl)
+  const tokenParams = apiHost === 'api.openai.com' || apiHost === 'api.cerebras.ai'
     ? { max_completion_tokens: maxTokens }
     : { max_tokens: maxTokens };
 
@@ -848,7 +860,7 @@ async function openAICompatibleGenerate(
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${apiKey}`,
-      ...(apiUrl.includes('openrouter') && { 'HTTP-Referer': 'https://stealthhumanizer.app' }),
+      ...(apiHost === 'openrouter.ai' && { 'HTTP-Referer': 'https://stealthhumanizer.app' }),
       ...extras.headers,
     },
     body: JSON.stringify({
