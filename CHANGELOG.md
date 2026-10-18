@@ -15,10 +15,12 @@ returned 404s are gone: Gemini 2.0, Cerebras Llama 3.1, DeepInfra/NVIDIA Llama 3
 Groq Compound, Mistral Nemo, Cohere `command-light`, the old Cloudflare Llama 3
 models, and Fireworks' placeholder `default`.
 
-New defaults: OpenAI `gpt-6-luna`, Claude `claude-opus-5-5`, Gemini
-`gemini-3.5-flash-lite`, Mistral `mistral-small-latest`, Together/OpenRouter
-DeepSeek V4.1 Flash, Cerebras `qwen-3.8-27b`, Z.ai `glm-5.3-flash`, Codex CLI
-`gpt-6.1-sol` (GPT-5.5 left Codex for ChatGPT sign-in on 2026-10-14).
+New defaults: OpenAI `gpt-6-luna`, Claude `claude-sonnet-5-5` (Opus 5.5 stays
+available in the list; the default rewrite model shouldn't be the flagship),
+Gemini `gemini-3.5-flash-lite`, Mistral `mistral-small-latest`,
+Together/OpenRouter DeepSeek V4.1 Flash, Cerebras `qwen-3.8-27b`, Z.ai
+`glm-5.3-flash`, Codex CLI `gpt-6.1-sol` (GPT-5.5 left Codex for ChatGPT
+sign-in on 2026-10-14).
 
 ### Fixed
 
@@ -41,7 +43,6 @@ DeepSeek V4.1 Flash, Cerebras `qwen-3.8-27b`, Z.ai `glm-5.3-flash`, Codex CLI
 - The fetch host allowlist (and CSP `connect-src`) was missing Perplexity,
   Fireworks, NVIDIA NIM, OpenCode, Codebuff, Command Code and other configured
   providers, so their requests failed before being sent.
-- Perplexity requests set `disable_search: true`.
 
 ## [2.4.2] - 2026-07-04
 

@@ -173,7 +173,7 @@ export const PROVIDERS: Provider[] = [
     apiUrl: 'https://api.anthropic.com/v1/messages',
     getApiKeyUrl: 'https://console.anthropic.com/',
     docsUrl: 'https://docs.anthropic.com',
-    defaultModel: 'claude-opus-5-5',
+    defaultModel: 'claude-sonnet-5-5',
     models: ['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-5-5', 'claude-opus-4-8', 'claude-sonnet-4-6', 'claude-haiku-4-5'],
     placeholder: 'sk-ant-...',
   },
@@ -203,12 +203,12 @@ export const PROVIDERS: Provider[] = [
     docsUrl: 'https://docs.mistral.ai',
     defaultModel: 'mistral-small-latest',
     models: [
-      'mistral-large-4',
+      'mistral-large-4-0',
       'mistral-medium-latest',
       'mistral-large-latest',
       'mistral-small-latest',
-      'ministral-14b-latest',
-      'ministral-8b-latest',
+      'ministral-3-14b-25-12',
+      'ministral-3-8b-25-12',
     ],
     placeholder: '...',
   },
@@ -495,8 +495,6 @@ export const PROVIDERS: Provider[] = [
     models: [
       'google/gemma-4-31b-it',
       'deepseek-ai/deepseek-v4.1-flash',
-      'z-ai/glm-5.3-flash',
-      'mistralai/mistral-large-2-instruct',
       'openai/gpt-oss-20b',
     ],
     placeholder: 'nv_...',
@@ -744,10 +742,12 @@ interface GenerationOptions {
 // OpenAI's GPT-5+ and o-series are reasoning models. Pick the lightest effort
 // each one accepts — humanization is a single-pass rewrite. Returns null for
 // non-reasoning models (gpt-4o etc.), which take no reasoning_effort.
+// "none" is documented for the GPT-6 family (except Astra and 6.1 Sol); the
+// GPT-5 family's lowest documented effort is "minimal".
 function openAIReasoningEffort(model: string): 'none' | 'minimal' | 'low' | null {
   if (/^gpt-6-astra|^gpt-6\.1-sol/.test(model)) return 'low';
-  if (/^gpt-6|^gpt-5\.\d/.test(model)) return 'none';
-  if (/^gpt-5(-|$)/.test(model)) return 'minimal';
+  if (/^gpt-6/.test(model)) return 'none';
+  if (/^gpt-5/.test(model)) return 'minimal';
   if (/^o\d/.test(model)) return 'low';
   return null;
 }
@@ -799,9 +799,6 @@ function hostReasoningParams(provider: ModelProvider, model: string): RequestExt
       return /^glm-5\.3/.test(model) ? lowGlm53 : { body: { thinking: { type: 'disabled' } } };
     case 'ollama':
       return /^(gemma4|qwen3)/.test(model) ? { body: { reasoning_effort: 'none' } } : {};
-    case 'perplexity':
-      // Sonar searches the web on every request unless told not to.
-      return { body: { disable_search: true } };
     default:
       return {};
   }
@@ -1071,7 +1068,7 @@ async function claudeGenerate(
   apiKey: string,
   systemPrompt: string,
   userPrompt: string,
-  model: string = 'claude-opus-5-5',
+  model: string = 'claude-sonnet-5-5',
   options: GenerationOptions = {}
 ): Promise<string> {
   return anthropicCompatibleGenerate('https://api.anthropic.com/v1/messages', apiKey, systemPrompt, userPrompt, model, options);
